@@ -1,247 +1,258 @@
 # Modular Save System — Unity Package
 
-![Unity](https://img.shields.io/badge/Unity-2021.3+-black?logo=unity)
+![Unity](https://img.shields.io/badge/Unity-2022.3+-black?logo=unity)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 
-A modular save system for Unity with **AES encryption**, **HMAC-SHA256 integrity verification**, **JSON serialization**, and **versioned data migration**.
+A modular save system for Unity featuring AES encryption, HMAC-SHA256 integrity verification, JSON serialization, and versioned save data migration.
 
-Designed for **production use**, **data safety**, and **long-term save compatibility**.
-
----
-
-# Features
-
-• AES-CBC encryption for save files  
-• HMAC-SHA256 integrity protection (tamper detection)  
-• JSON serialization using Unity JsonUtility  
-• Generic architecture (`SaveManager<TData>`)  
-• Versioned save migrations  
-• Data validation layer  
-• Modular architecture (crypto / storage / serialization / versioning)  
-• Unity Package Manager compatible  
-• Unit tests included  
+The system is designed to provide secure, extensible, and production-ready save functionality for Unity projects.
 
 ---
 
-# Package Structure
+## Features
 
-```
-Runtime/
-  Core/
-    SaveManager.cs
-    SaveManagerFactory.cs
-
-  Crypto/
-    ICryptoService.cs
-    AesCryptoService.cs
-    ChecksumService.cs
-    CryptoUtilities.cs
-    IKeyProvider.cs
-    StaticKeyProvider.cs
-
-  Models/
-    SaveEnvelope.cs
-
-  Serialization/
-    ISaveSerializer.cs
-    ISaveEnvelopeSerializer.cs
-    JsonSaveSerializer.cs
-    JsonSaveEnvelopeSerializer.cs
-
-  Storage/
-    IStorageService.cs
-    FileStorageService.cs
-
-  Validation/
-    ISaveDataValidator.cs
-
-  Versioning/
-    ISaveMigration.cs
-    MigrationManager.cs
-    VersionManager.cs
-
-Editor/
-  SaveSystemEditorWindow.cs
-
-Tests/
-  Runtime/
-    SaveSystemTests.cs
-
-Documentation~/
-  ExampleIntegration.cs
-```
+- AES-CBC encryption for save files
+- HMAC-SHA256 integrity verification
+- JSON serialization
+- Generic architecture using SaveManager<TData>
+- Versioned save data migrations
+- Save data validation layer
+- Modular architecture
+- Unity Package Manager compatible
+- Runtime tests included
 
 ---
 
-# Installation
+## Package Structure
 
-## Install via Git URL
+    Runtime
+     ├── Core
+     │   ├── SaveManager.cs
+     │   └── SaveManagerFactory.cs
+     │
+     ├── Crypto
+     │   ├── ICryptoService.cs
+     │   ├── AesCryptoService.cs
+     │   ├── ChecksumService.cs
+     │   ├── CryptoUtilities.cs
+     │   ├── IKeyProvider.cs
+     │   └── StaticKeyProvider.cs
+     │
+     ├── Models
+     │   └── SaveEnvelope.cs
+     │
+     ├── Serialization
+     │   ├── ISaveSerializer.cs
+     │   ├── ISaveEnvelopeSerializer.cs
+     │   ├── JsonSaveSerializer.cs
+     │   └── JsonSaveEnvelopeSerializer.cs
+     │
+     ├── Storage
+     │   ├── IStorageService.cs
+     │   └── FileStorageService.cs
+     │
+     ├── Validation
+     │   └── ISaveDataValidator.cs
+     │
+     └── Versioning
+         ├── ISaveMigration.cs
+         ├── MigrationManager.cs
+         └── VersionManager.cs
 
-Unity → **Window → Package Manager → + → Add package from git URL**
+    Editor
+     └── SaveSystemEditorWindow.cs
 
-```
-https://github.com/yourname/com.savesystem.core.git
-```
+    Tests
+     └── Runtime
+         └── SaveSystemTests.cs
+
+    Documentation~
+     └── ExampleIntegration.cs
 
 ---
 
-## Local Installation
+## Installation
 
-Add to `Packages/manifest.json`
+### Install via Git URL
 
-```json
-{
-  "dependencies": {
-    "com.savesystem.core": "file:../../com.savesystem.core"
-  }
-}
-```
+Open Unity Package Manager:
 
----
+    Window → Package Manager
 
-# Quick Start
+Click:
 
-## 1. Define Save Data
+    + → Add package from git URL
 
-```csharp
-[Serializable]
-public class MyGameData
-{
-    public int version = 1;
-    public string playerName = "Hero";
-    public int score = 0;
-}
-```
+Insert:
+
+    https://github.com/JuDze/SaveSystemPacakgeUnity.git
+
+Unity will automatically install the package.
 
 ---
 
-## 2. Create Validator
+### Local Installation
 
-```csharp
-public class MyValidator : ISaveDataValidator<MyGameData>
-{
-    public MyGameData Validate(MyGameData data)
+Edit:
+
+    Packages/manifest.json
+
+Add:
+
     {
-        if (data.score < 0)
-            data.score = 0;
-
-        return data;
+      "dependencies": {
+        "com.judze.savesystem.runtime": "file:../../SaveSystemPacakgeUnity"
+      }
     }
-}
-```
+
+Adjust the path according to your local folder structure.
 
 ---
 
-## 3. Create SaveManager
+## Quick Start
 
-```csharp
-var saveManager = SaveManagerFactory.Create(
-    defaultData:        new MyGameData(),
-    validator:          new MyValidator(),
-    registerMigrations: m => m.RegisterMigration(new MyMigration_V1_V2()),
-    getVersion:         d => d.version,
-    setVersion:         (d, v) => d.version = v,
-    currentVersion:     2,
-    masterSecret:       "your-secret-key"
-);
-```
+### 1. Define Save Data
 
----
+    using System;
 
-## 4. Save and Load
-
-```csharp
-saveManager.Save(myData);
-
-var data = saveManager.Load();
-```
-
----
-
-# Save Version Migration
-
-When your save structure changes, create a migration.
-
-```csharp
-public class MyMigration_V2_V3 : ISaveMigration<MyGameData>
-{
-    public int FromVersion => 2;
-    public int ToVersion => 3;
-
-    public MyGameData Migrate(MyGameData old)
+    [Serializable]
+    public class MyGameData
     {
-        // transform data
-        return old;
+        public int version = 1;
+        public string playerName = "Player";
+        public int score = 0;
     }
-}
-```
-
-Then register migration and increase `currentVersion`.
 
 ---
 
-# Save File Format
+### 2. Create Validator
 
-Encrypted save files are stored in the following format:
+    using SaveSystem.Validation;
 
-```json
-{
-  "formatVersion": 1,
-  "algorithm": "AES-CBC-HMACSHA256",
-  "ivBase64": "...",
-  "cipherTextBase64": "...",
-  "macBase64": "..."
-}
-```
+    public class MyGameDataValidator : ISaveDataValidator<MyGameData>
+    {
+        public MyGameData Validate(MyGameData data)
+        {
+            if (data.score < 0)
+                data.score = 0;
 
----
-
-# Security Model
-
-Save files are protected by two layers:
-
-### Encryption
-
-AES-CBC encryption protects save data confidentiality.
-
-### Integrity Check
-
-HMAC-SHA256 ensures the save file was not modified or corrupted.
-
-If tampering is detected:
-
-• Save loading fails  
-• Default data is returned  
+            return data;
+        }
+    }
 
 ---
 
-# Running Tests
+### 3. Create SaveManager
 
-Unity → **Window → General → Test Runner**
+    using SaveSystem.Core;
 
-Run:
-
-```
-SaveSystem.Tests.Runtime
-```
-
----
-
-# Editor Tools
-
-An optional editor window is included:
-
-```
-Tools → Save System → Save Inspector
-```
-
-Allows inspecting save files during development.
+    var saveManager = SaveManagerFactory.Create(
+        defaultData: new MyGameData(),
+        validator: new MyGameDataValidator(),
+        registerMigrations: m => { },
+        getVersion: d => d.version,
+        setVersion: (d, v) => d.version = v,
+        currentVersion: 1,
+        masterSecret: "my-secret-key",
+        fileName: "gamesave.json"
+    );
 
 ---
 
-# License
+### 4. Save Data
+
+    saveManager.Save(data);
+
+---
+
+### 5. Load Data
+
+    var data = saveManager.Load();
+
+---
+
+## Save Version Migration
+
+If the save structure changes between versions, create a migration.
+
+    using SaveSystem.Versioning;
+
+    public class Migration_V1_V2 : ISaveMigration<MyGameData>
+    {
+        public int FromVersion => 1;
+        public int ToVersion => 2;
+
+        public MyGameData Migrate(MyGameData oldData)
+        {
+            oldData.score = 0;
+            return oldData;
+        }
+    }
+
+Register migrations when creating the manager:
+
+    registerMigrations: m =>
+    {
+        m.RegisterMigration(new Migration_V1_V2());
+    },
+
+---
+
+## Save File Format
+
+Example encrypted save structure:
+
+    {
+      "formatVersion": 1,
+      "algorithm": "AES-CBC-HMACSHA256",
+      "ivBase64": "...",
+      "cipherTextBase64": "...",
+      "macBase64": "..."
+    }
+
+---
+
+## Security Model
+
+Encryption  
+AES-CBC protects save data confidentiality.
+
+Integrity verification  
+HMAC-SHA256 detects tampering or corruption.
+
+If verification fails, the system can reject the save file and fall back to default data.
+
+---
+
+## Running Tests
+
+Open Unity Test Runner:
+
+    Window → General → Test Runner
+
+Run the runtime tests included in the package.
+
+---
+
+## Package Information
+
+Package name:
+
+    com.judze.savesystem.runtime
+
+Assembly name:
+
+    JuDze.SaveSystem.Runtime
+
+Root namespace:
+
+    SaveSystem
+
+---
+
+## License
 
 MIT License
 
-You are free to use this package in personal or commercial projects.
+This package can be used in both personal and commercial projects.

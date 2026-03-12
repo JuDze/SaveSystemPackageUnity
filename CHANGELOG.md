@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] — 2025
+## [1.0.0] — 2026
 
 ### Added
 - `SaveManager<TData>` — generic core manager (serialization, encryption, integrity, migration)
