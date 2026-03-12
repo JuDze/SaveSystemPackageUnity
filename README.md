@@ -20,7 +20,7 @@ The system is designed to provide secure, extensible, and production-ready save 
 - Save data validation layer
 - Modular architecture
 - Unity Package Manager compatible
-- Runtime tests included
+- EditMode tests included
 
 ---
 
@@ -60,11 +60,9 @@ The system is designed to provide secure, extensible, and production-ready save 
          ├── MigrationManager.cs
          └── VersionManager.cs
 
-    Editor
-     └── SaveSystemEditorWindow.cs
-
     Tests
-     └── Runtime
+     └── Editor
+         └── SaveSystem.Tests.Editor.asmdef
          └── SaveSystemTests.cs
 
     Documentation~
@@ -86,7 +84,7 @@ Click:
 
 Insert:
 
-    https://github.com/JuDze/SaveSystemPacakgeUnity.git
+    https://github.com/JuDze/SaveSystemPackageUnity.git
 
 Unity will automatically install the package.
 
@@ -231,7 +229,7 @@ Open Unity Test Runner:
 
     Window → General → Test Runner
 
-Run the runtime tests included in the package.
+Run the EditMode tests included in the package.
 
 ---
 

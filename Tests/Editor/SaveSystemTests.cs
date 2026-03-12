@@ -66,7 +66,7 @@ namespace SaveSystem.Tests
             var data      = System.Text.Encoding.UTF8.GetBytes("secret");
             var encrypted = _crypto.Encrypt(data, _key, _iv);
             var wrongKey  = new byte[32]; // all zeros
-            Assert.Throws<Exception>(() => _crypto.Decrypt(encrypted, wrongKey, _iv));
+            Assert.Throws<System.Security.Cryptography.CryptographicException>(() => _crypto.Decrypt(encrypted, wrongKey, _iv));
         }
     }
 

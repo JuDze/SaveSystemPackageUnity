@@ -2,12 +2,24 @@
   "name": "com.judze.savesystem.runtime",
   "version": "1.0.0",
   "displayName": "Modular Save System",
-  "description": "Modular, encrypted game save system for Unity. Supports AES-CBC encryption, HMAC-SHA256 integrity, JSON serialization and versioned data migration.",
+  "description": "Modular encrypted save system for Unity with AES-CBC encryption, HMAC-SHA256 integrity verification, JSON serialization and versioned data migration.",
   "unity": "2022.3",
   "unityRelease": "0f1",
-  "keywords": ["save", "serialization", "encryption", "versioning", "migration"],
+  "license": "MIT",
+  "documentationUrl": "https://github.com/JuDze/SaveSystemPacakgeUnity",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JuDze/SaveSystemPacakgeUnity.git"
+  },
+  "keywords": [
+    "save",
+    "serialization",
+    "encryption",
+    "versioning",
+    "migration"
+  ],
   "author": {
-    "name": "juDze",
+    "name": "JuDze",
     "email": "expertcatus@gmail.com"
   }
 }
