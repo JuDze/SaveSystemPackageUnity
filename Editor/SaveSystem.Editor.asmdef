@@ -1,0 +1,14 @@
+{
+    "name": "JuDze.SaveSystem.Editor",
+    "rootNamespace": "SaveSystem.Editor",
+    "references": ["JuDze.SaveSystem.Runtime"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
