@@ -108,7 +108,7 @@ namespace SaveSystem.Core
             }
             catch (Exception ex)
             {
-                Debug.LogError($"{LOG_PREFIX}Error while saving data: {ex.Message}");
+                Debug.LogError($"{LOG_PREFIX}Error while saving data: {ex.GetType().Name}: {ex.Message}");
                 throw;
             }
         }
@@ -182,7 +182,7 @@ namespace SaveSystem.Core
             }
             catch (Exception ex)
             {
-                Debug.LogError($"{LOG_PREFIX}Error while loading data: {ex.Message}");
+                Debug.LogError($"{LOG_PREFIX}Error while loading data: {ex.GetType().Name}: {ex.Message}");
                 return createDefaultDataFunc();
             }
         }
@@ -197,7 +197,7 @@ namespace SaveSystem.Core
             }
             catch (Exception ex)
             {
-                Debug.LogError($"{LOG_PREFIX}Error while deleting save file: {ex.Message}");
+                Debug.LogError($"{LOG_PREFIX}Error while deleting save file: {ex.GetType().Name}: {ex.Message}");
                 throw;
             }
         }
@@ -217,8 +217,16 @@ namespace SaveSystem.Core
         // Validates that the save envelope contains all required fields
         private void ValidateEnvelope(SaveEnvelope envelope)
         {
-            if (string.IsNullOrWhiteSpace(envelope.algorithm))
-                throw new InvalidOperationException("Save envelope algorithm is missing.");
+            if (envelope == null)
+                throw new ArgumentNullException(nameof(envelope));
+
+            if (envelope.formatVersion != 1)
+                throw new InvalidOperationException(
+                    $"Unsupported save envelope format version: {envelope.formatVersion}");
+
+            if (envelope.algorithm != "AES-CBC-HMACSHA256")
+                throw new InvalidOperationException(
+                    $"Unsupported save envelope algorithm: {envelope.algorithm}");
 
             if (string.IsNullOrWhiteSpace(envelope.ivBase64))
                 throw new InvalidOperationException("Save envelope IV is missing.");
