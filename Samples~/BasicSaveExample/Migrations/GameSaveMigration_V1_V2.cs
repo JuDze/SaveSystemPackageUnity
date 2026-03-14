@@ -1,5 +1,6 @@
 using SaveSystem.Versioning;
 using SaveSystem.Samples.BasicSaveExample.Data;
+using UnityEngine;
 
 namespace SaveSystem.Samples.BasicSaveExample.Migrations
 {
