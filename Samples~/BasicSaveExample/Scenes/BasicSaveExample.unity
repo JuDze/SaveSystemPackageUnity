@@ -202,7 +202,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1650385943}
+      - m_Target: {fileID: 1650385945}
         m_TargetAssemblyTypeName: SaveSystem.Samples.BasicSaveExample.SaveSystemSampleController,
           JuDze.SaveSystem.Samples.BasicSaveExample
         m_MethodName: LoadSampleData
@@ -771,7 +771,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1650385943}
+      - m_Target: {fileID: 1650385945}
         m_TargetAssemblyTypeName: SaveSystem.Samples.BasicSaveExample.SaveSystemSampleController,
           JuDze.SaveSystem.Samples.BasicSaveExample
         m_MethodName: CreateLegacyV1Save
@@ -1032,7 +1032,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1650385943}
+      - m_Target: {fileID: 1650385945}
         m_TargetAssemblyTypeName: SaveSystem.Samples.BasicSaveExample.SaveSystemSampleController,
           JuDze.SaveSystem.Samples.BasicSaveExample
         m_MethodName: CheckSaveExists
@@ -1766,7 +1766,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1650385943}
+      - m_Target: {fileID: 1650385945}
         m_TargetAssemblyTypeName: SaveSystem.Samples.BasicSaveExample.SaveSystemSampleController,
           JuDze.SaveSystem.Samples.BasicSaveExample
         m_MethodName: SaveSampleData
@@ -1826,7 +1826,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1650385944}
-  - component: {fileID: 1650385943}
+  - component: {fileID: 1650385945}
   m_Layer: 0
   m_Name: SaveSystemSample
   m_TagString: Untagged
@@ -1834,19 +1834,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1650385943
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1650385942}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f1336995df854d36b398dcf68368573, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: JuDze.SaveSystem.Samples.BasicSaveExample::SaveSystem.Samples.BasicSaveExample.SaveSystemSampleController
-  saveFileName: basic_save_example.json
 --- !u!4 &1650385944
 Transform:
   m_ObjectHideFlags: 0
@@ -1862,6 +1849,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 17.352, z: 0}
+--- !u!114 &1650385945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650385942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f277ce188aebe4dea9501541937e08a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: JuDze.SaveSystem.Samples.BasicSaveExample::SaveSystem.Samples.BasicSaveExample.SaveSystemSampleController
+  saveFileName: basic_save_example.json
 --- !u!1 &1719781801
 GameObject:
   m_ObjectHideFlags: 0
@@ -2321,10 +2321,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1650385943}
+      - m_Target: {fileID: 1650385945}
         m_TargetAssemblyTypeName: SaveSystem.Samples.BasicSaveExample.SaveSystemSampleController,
           JuDze.SaveSystem.Samples.BasicSaveExample
-        m_MethodName: DeleteSave
+        m_MethodName: LoadSampleData
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
