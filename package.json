@@ -18,6 +18,13 @@
     "versioning",
     "migration"
   ],
+  "samples": [
+    {
+      "displayName": "Basic Save Example",
+      "description": "Minimal example showing how to use the SaveSystem package.",
+      "path": "Samples~/BasicSaveExample"
+    }
+  ],
   "author": {
     "name": "JuDze",
     "email": "expertcatus@gmail.com"

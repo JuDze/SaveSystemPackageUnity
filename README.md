@@ -114,6 +114,13 @@ Invalid migrations (duplicate steps or invalid version ranges) will throw except
 
     Documentation~
      └── ExampleIntegration.cs
+     
+    BasicSaveExample
+     ├── README.md
+     ├── BasicSaveExample.asmdef
+     ├── Scenes
+     └── Scripts
+
 
 ---
 

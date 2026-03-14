@@ -1,0 +1,16 @@
+{
+    "name": "Game.SaveIntegration",
+    "rootNamespace": "Game.SaveIntegration",
+    "references": [
+        "JuDze.SaveSystem.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

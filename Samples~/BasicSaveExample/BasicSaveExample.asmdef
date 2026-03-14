@@ -1,0 +1,16 @@
+{
+  "name": "JuDze.SaveSystem.Samples.BasicSaveExample",
+  "rootNamespace": "SaveSystem.Samples.BasicSaveExample",
+  "references": [
+    "JuDze.SaveSystem.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
