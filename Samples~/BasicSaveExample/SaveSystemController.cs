@@ -15,12 +15,24 @@ using SaveSystem.Samples.BasicSaveExample.Migrations;
 namespace SaveSystem.Samples.BasicSaveExample
 {
     // Example MonoBehaviour demonstrating how to initialize and use the save system.
-    // This script creates the SaveManager and exposes simple test actions via ContextMenu.
+    // This script creates the SaveManager and exposes simple actions for the sample scene.
     public class SaveSystemSampleController : MonoBehaviour
     {
+        [SerializeField]
+        private string saveFileName = "basic_save_example.json";
+
         private SaveManager<GameSaveData> saveManager;
 
         private void Awake()
+        {
+            saveManager = CreateSaveManager();
+
+            Debug.Log("Save system initialized.");
+            Debug.Log("Save file name: " + saveFileName);
+            Debug.Log("Save path: " + saveManager.GetSavePath());
+        }
+
+        private SaveManager<GameSaveData> CreateSaveManager()
         {
             // Serializer for the actual game data model
             var serializer = new JsonSaveSerializer<GameSaveData>();
@@ -38,7 +50,7 @@ namespace SaveSystem.Samples.BasicSaveExample
             var keyProvider = new StaticKeyProvider("MyGameSecretKey");
 
             // File storage service (writes to Application.persistentDataPath)
-            var storage = new FileStorageService("save.json");
+            var storage = new FileStorageService(saveFileName);
 
             // Factory used to create default save data
             var factory = new GameSaveDataFactory();
@@ -46,7 +58,7 @@ namespace SaveSystem.Samples.BasicSaveExample
             // Migration manager that stores all version migration steps
             var migrationManager = new MigrationManager<GameSaveData>();
 
-            // Register example migration from version 1 → 2
+            // Register example migration from version 1 to version 2
             migrationManager.RegisterMigration(new GameSaveMigration_V1_V2());
 
             // Version manager controls migration pipeline
@@ -61,7 +73,7 @@ namespace SaveSystem.Samples.BasicSaveExample
             var validator = new GameSaveDataValidator();
 
             // Create the main SaveManager instance
-            saveManager = new SaveManager<GameSaveData>(
+            return new SaveManager<GameSaveData>(
                 serializer,
                 envelopeSerializer,
                 cryptoService,
@@ -72,14 +84,23 @@ namespace SaveSystem.Samples.BasicSaveExample
                 versionManager,
                 validator
             );
-
-            Debug.Log("Save system initialized.");
-            Debug.Log("Save path: " + saveManager.GetSavePath());
         }
 
-        [ContextMenu("Test Save")]
-        public void TestSave()
+        private bool EnsureInitialized()
         {
+            if (saveManager != null)
+                return true;
+
+            Debug.LogError("Save system is not initialized.");
+            return false;
+        }
+
+        [ContextMenu("Save Sample Data")]
+        public void SaveSampleData()
+        {
+            if (!EnsureInitialized())
+                return;
+
             // Example save data used for testing
             GameSaveData testData = new GameSaveData
             {
@@ -106,12 +127,15 @@ namespace SaveSystem.Samples.BasicSaveExample
 
             saveManager.Save(testData);
 
-            Debug.Log("Test save completed.");
+            Debug.Log("Sample data saved successfully.");
         }
 
-        [ContextMenu("Test Load")]
-        public void TestLoad()
+        [ContextMenu("Load Sample Data")]
+        public void LoadSampleData()
         {
+            if (!EnsureInitialized())
+                return;
+
             GameSaveData loadedData = saveManager.Load();
 
             Debug.Log("=== Loaded save data ===");
@@ -163,14 +187,55 @@ namespace SaveSystem.Samples.BasicSaveExample
         [ContextMenu("Delete Save")]
         public void DeleteSave()
         {
+            if (!EnsureInitialized())
+                return;
+
             saveManager.DeleteSave();
-            Debug.Log("Save file deleted.");
+            Debug.Log("Sample save file deleted.");
         }
 
         [ContextMenu("Check Save Exists")]
         public void CheckSaveExists()
         {
+            if (!EnsureInitialized())
+                return;
+
             Debug.Log("Save exists: " + saveManager.HasSave());
+        }
+
+        [ContextMenu("Create Legacy V1 Save")]
+        public void CreateLegacyV1Save()
+        {
+            if (!EnsureInitialized())
+                return;
+
+            // This simulates an old save file created before version 2 existed.
+            GameSaveData legacyData = new GameSaveData
+            {
+                saveVersion = 1,
+
+                currentLevelId = "Level_01",
+                playerHealth = 80,
+                coins = 25,
+                gems = 0,
+
+                playerPosition = new Vector3Data(0f, 0f, 0f),
+
+                settings = new GameSettingsData
+                {
+                    soundEnabled = true,
+                    musicVolume = 0.5f
+                },
+
+                inventory = new List<GameInventoryItemData>
+                {
+                    new GameInventoryItemData("potion_small", 2)
+                }
+            };
+
+            saveManager.Save(legacyData);
+
+            Debug.Log("Legacy V1 save created with version = 1. Load it to trigger migration to version 2.");
         }
     }
 }

@@ -14,6 +14,7 @@ namespace SaveSystem.Samples.BasicSaveExample.Migrations
         public GameSaveData Migrate(GameSaveData data)
         {
             // Initialize the new field introduced in version 2
+            Debug.Log("Applying migration V1 -> V2 (adding gems field)");
             data.gems = 0;
 
             return data;
