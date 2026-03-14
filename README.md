@@ -10,6 +10,18 @@ The system is designed to provide secure, extensible, and production-ready save 
 
 ---
 
+## Design Goals
+
+The save system is designed with the following goals:
+
+- **Security** — encrypted save files with integrity verification
+- **Reliability** — backup and recovery mechanisms prevent data loss
+- **Extensibility** — modular architecture allows replacing storage, serialization, or encryption
+- **Version safety** — strict migration pipeline prevents loading incompatible saves
+- **Unity integration** — designed for Unity projects and compatible with Unity Package Manager
+
+---
+
 ## Features
 
 - AES-CBC encryption for save files
@@ -21,6 +33,40 @@ The system is designed to provide secure, extensible, and production-ready save 
 - Modular architecture
 - Unity Package Manager compatible
 - EditMode tests included
+
+---
+
+## Save Reliability
+
+The system implements a safe-write mechanism to prevent save corruption.
+
+Save procedure:
+
+1. Data is written to a temporary `.tmp` file
+2. The existing save is moved to `.bak`
+3. The temporary file replaces the main save
+
+Load procedure:
+
+1. The system attempts to load the main save
+2. If the main save is corrupted, the backup `.bak` file is loaded
+3. If both fail, default data is returned
+
+This ensures that partially written saves or crashes during saving do not permanently corrupt player data.
+
+---
+
+## Migration Rules
+
+Each migration must:
+
+- handle a single version step
+- modify data fields only
+- not change the version number manually
+
+The version field is updated automatically by `MigrationManager`.
+
+Invalid migrations (duplicate steps or invalid version ranges) will throw exceptions.
 
 ---
 
