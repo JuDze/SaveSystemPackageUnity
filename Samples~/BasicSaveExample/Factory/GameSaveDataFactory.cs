@@ -29,7 +29,7 @@ namespace SaveSystem.Samples.BasicSaveExample.Factory
                 inventory = new List<GameInventoryItemData>
                 {
                     new GameInventoryItemData("potion", 3)
-                };
+                }
             };
         }
     }
