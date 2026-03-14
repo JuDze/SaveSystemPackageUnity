@@ -1,47 +1,86 @@
+using System;
 using System.Collections.Generic;
 
 namespace SaveSystem.Versioning
 {
-    // Manages data migrations between different save versions.
-    public class MigrationManager<TData>
+    // Manages registered migration steps and applies them in order.
+    public class MigrationManager<TData> where TData : class
     {
-        // List of registered migration steps
-        private readonly List<ISaveMigration<TData>> migrations = new();
+        // Store migrations by starting version to prevent duplicates
+        // and allow fast lookup.
+        private readonly Dictionary<int, ISaveMigration<TData>> migrations = new();
 
-        // Registers a new migration step
+        // Registers a migration step.
+        // Throws if the migration is invalid or conflicts with an existing one.
         public void RegisterMigration(ISaveMigration<TData> migration)
         {
-            migrations.Add(migration);
+            if (migration == null)
+                throw new ArgumentNullException(nameof(migration));
+
+            if (migration.ToVersion <= migration.FromVersion)
+            {
+                throw new InvalidOperationException(
+                    $"Invalid migration {migration.GetType().Name}: " +
+                    $"ToVersion ({migration.ToVersion}) must be greater than FromVersion ({migration.FromVersion}).");
+            }
+
+            if (migrations.ContainsKey(migration.FromVersion))
+            {
+                throw new InvalidOperationException(
+                    $"A migration starting from version {migration.FromVersion} is already registered.");
+            }
+
+            migrations.Add(migration.FromVersion, migration);
         }
 
-        // Applies all necessary migrations from the current version
-        // up to the target version
+        // Applies all required migrations from the current data version
+        // up to the target version.
         public TData ApplyMigrations(
             TData data,
             int currentDataVersion,
             int targetVersion,
-            System.Action<TData, int> updateVersionAction)
+            Action<TData, int> updateVersionAction)
         {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
+            if (updateVersionAction == null)
+                throw new ArgumentNullException(nameof(updateVersionAction));
+
+            if (currentDataVersion < 0)
+                throw new ArgumentOutOfRangeException(nameof(currentDataVersion), "Save version cannot be negative.");
+
+            if (targetVersion < 0)
+                throw new ArgumentOutOfRangeException(nameof(targetVersion), "Target version cannot be negative.");
+
+            if (currentDataVersion > targetVersion)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot migrate backwards from version {currentDataVersion} to {targetVersion}.");
+            }
+
             int version = currentDataVersion;
 
-            // Keep migrating until we reach the target version
+            // Apply migrations step by step until the target version is reached.
             while (version < targetVersion)
             {
-                // Find the migration step for the current version
-                ISaveMigration<TData> migration = migrations.Find(m => m.FromVersion == version);
+                if (!migrations.TryGetValue(version, out ISaveMigration<TData> migration))
+                {
+                    throw new InvalidOperationException(
+                        $"Missing migration step from version {version} to the next version. " +
+                        $"Cannot reach target version {targetVersion}.");
+                }
 
-                // If no migration is found for this step, stop the process
-                if (migration == null)
-                    break;
-
-                // Apply the migration
                 data = migration.Migrate(data);
 
-                // Advance to the next version
-                version = migration.ToVersion;
+                if (data == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Migration {migration.GetType().Name} returned null.");
+                }
 
-                // Update the version number stored in the data itself
-                updateVersionAction?.Invoke(data, version);
+                version = migration.ToVersion;
+                updateVersionAction(data, version);
             }
 
             return data;

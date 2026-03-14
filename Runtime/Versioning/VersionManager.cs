@@ -2,20 +2,12 @@ using System;
 
 namespace SaveSystem.Versioning
 {
-    // Ensures that loaded data matches the current system version.
-    // If the data is from an older version, the migration process is triggered.
-    public class VersionManager<TData>
+    // Ensures that loaded data matches the current save format version.
+    public class VersionManager<TData> where TData : class
     {
-        // Migration manager that executes version transitions
         private readonly MigrationManager<TData> migrationManager;
-
-        // Function that reads the version number from the data
         private readonly Func<TData, int> getVersionFunc;
-
-        // Action that updates the version number stored in the data
         private readonly Action<TData, int> setVersionAction;
-
-        // The current (latest) version of the save data format
         private readonly int currentVersion;
 
         public VersionManager(
@@ -24,23 +16,39 @@ namespace SaveSystem.Versioning
             Action<TData, int> setVersionAction,
             int currentVersion)
         {
-            this.migrationManager = migrationManager;
-            this.getVersionFunc   = getVersionFunc;
-            this.setVersionAction = setVersionAction;
-            this.currentVersion   = currentVersion;
+            this.migrationManager = migrationManager ?? throw new ArgumentNullException(nameof(migrationManager));
+            this.getVersionFunc = getVersionFunc ?? throw new ArgumentNullException(nameof(getVersionFunc));
+            this.setVersionAction = setVersionAction ?? throw new ArgumentNullException(nameof(setVersionAction));
+
+            if (currentVersion < 0)
+                throw new ArgumentOutOfRangeException(nameof(currentVersion), "Current version cannot be negative.");
+
+            this.currentVersion = currentVersion;
         }
 
-        // Checks the data version and runs migrations if needed
-        // to bring the data up to the latest version
+        // Ensures that loaded save data is upgraded to the latest supported version.
         public TData EnsureLatestVersion(TData data)
         {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
             int dataVersion = getVersionFunc(data);
 
-            // If already at the current version, no migration needed
+            if (dataVersion < 0)
+                throw new InvalidOperationException("Loaded save has a negative version.");
+
+            // Already current
             if (dataVersion == currentVersion)
                 return data;
 
-            // Otherwise apply all necessary migrations
+            // Save is from a newer game version and cannot be safely loaded.
+            if (dataVersion > currentVersion)
+            {
+                throw new InvalidOperationException(
+                    $"Save version {dataVersion} is newer than the supported version {currentVersion}.");
+            }
+
+            // Save is older and requires migration.
             return migrationManager.ApplyMigrations(
                 data,
                 dataVersion,

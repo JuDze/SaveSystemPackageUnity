@@ -2,7 +2,7 @@ namespace SaveSystem.Versioning
 {
     // Interface for a single version migration step.
     // Implement one class per version transition (e.g. V1 -> V2).
-    public interface ISaveMigration<TData>
+    public interface ISaveMigration<TData> where TData : class
     {
         int FromVersion { get; }
         int ToVersion   { get; }
