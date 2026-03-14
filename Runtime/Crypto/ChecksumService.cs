@@ -27,13 +27,16 @@ namespace SaveSystem.Crypto
         // Used to check data integrity after loading.
         public bool VerifyMac(byte[] data, byte[] key, byte[] expectedMac)
         {
+            if (data == null || data.Length == 0)
+                return false;
+
+            if (key == null || key.Length == 0)
+                return false;
+
             if (expectedMac == null || expectedMac.Length == 0)
                 return false;
 
             byte[] actualMac = ComputeMac(data, key);
-
-            // FixedTimeEquals is used to prevent timing attack vulnerabilities
-            // during MAC comparison
             return CryptographicOperations.FixedTimeEquals(actualMac, expectedMac);
         }
     }

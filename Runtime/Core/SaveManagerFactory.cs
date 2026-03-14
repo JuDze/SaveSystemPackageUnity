@@ -33,7 +33,7 @@ namespace SaveSystem.Core
             Func<TData, int> getVersion,
             Action<TData, int> setVersion,
             int currentVersion,
-            string masterSecret = "change-this-secret-in-production",
+            string masterSecret = "create-your-own-master-secret",
             string fileName = "save.json") where TData : class
         {
             var saveSerializer     = new JsonSaveSerializer<TData>();
@@ -84,7 +84,7 @@ namespace SaveSystem.Core
                 getVersion,
                 setVersion,
                 currentVersion,
-                masterSecret: "dev-only-not-secure",
+                masterSecret: "create-your-own-master-secret",
                 fileName: fileName);
         }
     }
