@@ -27,7 +27,7 @@ namespace SaveSystem.Core
         /// Creates a SaveManager with AES + HMAC encryption (recommended for release builds).
         /// </summary>
         public static SaveManager<TData> Create<TData>(
-            TData defaultData,
+            Func<TData> createDefaultData,
             ISaveDataValidator<TData> validator,
             Action<MigrationManager<TData>> registerMigrations,
             Func<TData, int> getVersion,
@@ -59,15 +59,18 @@ namespace SaveSystem.Core
                 checksumService,
                 keyProvider,
                 storage,
-                () => defaultData,
+                createDefaultData,
                 versionManager,
                 validator);
         }
 
         /// <summary>
-        /// Creates a SaveManager without encryption — convenient for development and testing.
-        /// Data is saved in readable JSON. Do NOT use in release builds!
+        /// Fore development purposes:
+        /// Creates a SaveManager without encryption.
+        /// Data is saved in readable JSON. 
         /// </summary>
+        /// 
+        
         public static SaveManager<TData> CreateUnencrypted<TData>(
             TData defaultData,
             ISaveDataValidator<TData> validator,
@@ -78,7 +81,7 @@ namespace SaveSystem.Core
             string fileName = "save_dev.json") where TData : class
         {
             return Create(
-                defaultData,
+                createDefaultData: () => defaultData,
                 validator,
                 registerMigrations,
                 getVersion,
