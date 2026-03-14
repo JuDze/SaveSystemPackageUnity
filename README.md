@@ -64,6 +64,7 @@ The system is designed to provide secure, extensible, and production-ready save 
      └── Editor
          └── SaveSystem.Tests.Editor.asmdef
          └── SaveSystemTests.cs
+         └── SaveManagerRecoveryTests.cs
 
     Documentation~
      └── ExampleIntegration.cs
