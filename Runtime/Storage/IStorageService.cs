@@ -21,5 +21,11 @@ namespace SaveSystem.Storage
 
         // Returns the full path to the save file
         string GetPath();
+
+        // Loads the backup save data as text
+        string LoadBackupText();
+
+        // Returns true if a backup copy exists
+        bool BackupExists();
     }
 }

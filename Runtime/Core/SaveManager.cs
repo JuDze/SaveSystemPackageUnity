@@ -13,7 +13,7 @@ namespace SaveSystem.Core
     // Main save system manager.
     // Responsible for data serialization, encryption, integrity checking,
     // version migration, validation and file storage.
-    public class SaveManager<TData>
+    public class SaveManager<TData> where TData: class
     {
         private const string LOG_PREFIX = "[SaveSystem] ";
 
@@ -114,75 +114,65 @@ namespace SaveSystem.Core
         }
 
         // Loads saved data from file
+        // Loads save data with fallback and recovery logic
         public TData Load()
         {
             try
             {
+                // If no save file exists, return default data
                 if (!storage.Exists())
                 {
                     Debug.LogWarning($"{LOG_PREFIX}Save file not found. Using default data.");
                     return createDefaultDataFunc();
                 }
 
-                string envelopeJson = storage.LoadText();
-
-                if (string.IsNullOrWhiteSpace(envelopeJson))
+                try
                 {
-                    Debug.LogWarning($"{LOG_PREFIX}Save file is empty. Using default data.");
-                    return createDefaultDataFunc();
+                    // Attempt to load the main save file
+                    string mainSaveText = storage.LoadText();
+                    TData mainData = TryLoadFromText(mainSaveText, "main");
+
+                    // If main save is valid, return it
+                    if (mainData != null)
+                        return mainData;
+                }
+                catch (Exception ex)
+                {
+                    // Log failure but continue with backup recovery
+                    Debug.LogError($"{LOG_PREFIX}Main save load failed: {ex.GetType().Name}: {ex.Message}");
                 }
 
-                // Deserialize save envelope
-                SaveEnvelope envelope = envelopeSerializer.Deserialize(envelopeJson);
-
-                if (envelope == null)
+                // If main save failed, try loading backup
+                if (storage.BackupExists())
                 {
-                    Debug.LogWarning($"{LOG_PREFIX}Failed to deserialize save envelope. Using default data.");
-                    return createDefaultDataFunc();
+                    try
+                    {
+                        // Attempt to load backup save file
+                        string backupSaveText = storage.LoadBackupText();
+                        TData backupData = TryLoadFromText(backupSaveText, "backup");
+
+                        // If backup is valid, use it
+                        if (backupData != null)
+                        {
+                            Debug.LogWarning($"{LOG_PREFIX}Main save is invalid. Backup save loaded successfully.");
+                            return backupData;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log backup failure and continue to default data
+                        Debug.LogError($"{LOG_PREFIX}Backup save load failed: {ex.GetType().Name}: {ex.Message}");
+                    }
                 }
 
-                ValidateEnvelope(envelope);
-
-                // Decode Base64 fields
-                byte[] iv            = Convert.FromBase64String(envelope.ivBase64);
-                byte[] cipherBytes   = Convert.FromBase64String(envelope.cipherTextBase64);
-                byte[] expectedMac   = Convert.FromBase64String(envelope.macBase64);
-
-                // Verify data integrity
-                byte[] macData = CryptoUtilities.Combine(iv, cipherBytes);
-                byte[] macKey  = keyProvider.GetMacKey();
-
-                bool isValidMac = checksumService.VerifyMac(macData, macKey, expectedMac);
-
-                if (!isValidMac)
-                {
-                    Debug.LogError($"{LOG_PREFIX}Save integrity check failed. Using default data.");
-                    return createDefaultDataFunc();
-                }
-
-                // Decrypt data
-                byte[] encryptionKey = keyProvider.GetEncryptionKey();
-                byte[] plainBytes    = cryptoService.Decrypt(cipherBytes, encryptionKey, iv);
-                string saveJson      = Encoding.UTF8.GetString(plainBytes);
-
-                // Deserialize game data
-                TData data = saveSerializer.Deserialize(saveJson);
-
-                if (data == null)
-                {
-                    Debug.LogWarning($"{LOG_PREFIX}Failed to deserialize game data. Using default data.");
-                    return createDefaultDataFunc();
-                }
-
-                // Apply version migration and validation
-                data = versionManager.EnsureLatestVersion(data);
-                data = validator.Validate(data);
-
-                return data;
+                // If both main and backup failed, return default data
+                Debug.LogWarning($"{LOG_PREFIX}No valid save could be loaded. Using default data.");
+                return createDefaultDataFunc();
             }
             catch (Exception ex)
             {
-                Debug.LogError($"{LOG_PREFIX}Error while loading data: {ex.GetType().Name}: {ex.Message}");
+                // Catch unexpected errors to prevent game crash
+                Debug.LogError($"{LOG_PREFIX}Unexpected error while loading data: {ex.GetType().Name}: {ex.Message}");
                 return createDefaultDataFunc();
             }
         }
@@ -236,6 +226,81 @@ namespace SaveSystem.Core
 
             if (string.IsNullOrWhiteSpace(envelope.macBase64))
                 throw new InvalidOperationException("Save envelope MAC is missing.");
+        }
+
+        private TData TryLoadFromText(string envelopeJson, string sourceLabel)
+        {
+            // Check if the loaded text is empty or contains only whitespace.
+            // This may happen if the save file exists but contains no valid data.
+            if (string.IsNullOrWhiteSpace(envelopeJson))
+            {
+                Debug.LogWarning($"{LOG_PREFIX}{sourceLabel} save file is empty.");
+                return null;
+            }
+
+            // Deserialize the encrypted save envelope (metadata + encrypted payload).
+            SaveEnvelope envelope = envelopeSerializer.Deserialize(envelopeJson);
+
+            // If the envelope cannot be parsed, the save file is considered invalid.
+            if (envelope == null)
+            {
+                Debug.LogWarning($"{LOG_PREFIX}Failed to deserialize {sourceLabel} save envelope.");
+                return null;
+            }
+
+            // Validate envelope structure and required fields.
+            // This ensures the save format and algorithm fields are correct.
+            ValidateEnvelope(envelope);
+
+            // Decode Base64 encoded components from the envelope.
+            byte[] iv = Convert.FromBase64String(envelope.ivBase64);
+            byte[] cipherBytes = Convert.FromBase64String(envelope.cipherTextBase64);
+            byte[] expectedMac = Convert.FromBase64String(envelope.macBase64);
+
+            // Recreate the original MAC input (IV + ciphertext).
+            // This must match the data used during save.
+            byte[] macData = CryptoUtilities.Combine(iv, cipherBytes);
+
+            // Retrieve the MAC verification key.
+            byte[] macKey = keyProvider.GetMacKey();
+
+            // Verify integrity using HMAC-SHA256.
+            // If verification fails, the save may be corrupted or tampered with.
+            bool isValidMac = checksumService.VerifyMac(macData, macKey, expectedMac);
+
+            if (!isValidMac)
+            {
+                Debug.LogError($"{LOG_PREFIX}{sourceLabel} save integrity check failed.");
+                return null;
+            }
+
+            // Retrieve the encryption key used to decrypt the save payload.
+            byte[] encryptionKey = keyProvider.GetEncryptionKey();
+
+            // Decrypt the ciphertext using AES.
+            byte[] plainBytes = cryptoService.Decrypt(cipherBytes, encryptionKey, iv);
+
+            // Convert decrypted bytes back to JSON string.
+            string saveJson = Encoding.UTF8.GetString(plainBytes);
+
+            // Deserialize the actual game save data.
+            TData data = saveSerializer.Deserialize(saveJson);
+
+            // If the payload cannot be parsed, the save is considered invalid.
+            if (data == null)
+            {
+                Debug.LogWarning($"{LOG_PREFIX}Failed to deserialize {sourceLabel} game data.");
+                return null;
+            }
+
+            // Apply version migration pipeline if the save format is outdated.
+            data = versionManager.EnsureLatestVersion(data);
+
+            // Validate and sanitize loaded data to ensure it is within valid bounds.
+            data = validator.Validate(data);
+
+            // Return the fully validated and migrated save data.
+            return data;
         }
     }
 }
