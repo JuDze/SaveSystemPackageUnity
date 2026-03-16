@@ -16,8 +16,8 @@
 //      5. Use the SaveManager from gameplay scripts
 //
 //  NOTE:
-//  This is example code provided for integration reference.
-//  Modify it according to your project's needs.
+// This file is for reference only and should be copied into
+// your game's Assets folder if needed.
 // =============================================================================
 
 using System;
@@ -94,26 +94,38 @@ public class MyGameMigration_V1_V2 : ISaveMigration<MyGameData>
 // -----------------------------------------------------------------------
 public class GameBootstrapper : MonoBehaviour
 {
-    // Global access from anywhere in the game
     public static SaveManager<MyGameData> SaveManager { get; private set; }
+
+    private static GameBootstrapper instance;
 
     private void Awake()
     {
+        if (instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
         DontDestroyOnLoad(gameObject);
 
+        InitializeSaveSystem();
+    }
+
+    private void InitializeSaveSystem()
+    {
         SaveManager = SaveManagerFactory.Create(
-            defaultData:        new MyGameData(),
-            validator:          new MyGameDataValidator(),
+            defaultData: new MyGameData(),
+            validator: new MyGameDataValidator(),
             registerMigrations: migrations =>
             {
                 migrations.RegisterMigration(new MyGameMigration_V1_V2());
-                // migrations.RegisterMigration(new MyGameMigration_V2_V3());
             },
-            getVersion:     data => data.version,
-            setVersion:     (data, v) => data.version = v,
+            getVersion: data => data.version,
+            setVersion: (data, v) => data.version = v,
             currentVersion: 2,
-            masterSecret:   "my-game-super-secret-2025",  // change to your own!
-            fileName:       "my_game_save.json"
+            masterSecret: "my-game-super-secret-2025",
+            fileName: "my_game_save.json"
         );
 
         Debug.Log("[Game] Save system ready. Path: " + SaveManager.GetSavePath());
@@ -132,6 +144,12 @@ public class GameController : MonoBehaviour
     private void Start()
     {
         // Load save data on game start
+        if (GameBootstrapper.SaveManager == null)
+        {
+            Debug.LogError("Save system not initialized.");
+            return;
+        }
+
         _data = GameBootstrapper.SaveManager.Load();
         Debug.Log($"Loaded: {_data.playerName}, Level {_data.level}, Score {_data.score}");
     }
