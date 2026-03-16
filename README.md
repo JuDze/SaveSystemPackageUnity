@@ -115,11 +115,14 @@ Invalid migrations (duplicate steps or invalid version ranges) will throw except
     Documentation~
      └── ExampleIntegration.cs
      
-    BasicSaveExample
-     ├── README.md
-     ├── BasicSaveExample.asmdef
-     ├── Scenes
-     └── Scripts
+    Samples~
+    └── Basic Save Example
+        ├── README.md
+        ├── BasicSaveExample.asmdef
+        ├── Scenes
+        │   └── BasicSaveExample.unity
+        └── Scripts
+            └── SaveSystemSampleController.cs
 
 
 ---
@@ -154,7 +157,7 @@ Add:
 
     {
       "dependencies": {
-        "com.judze.savesystem.runtime": "file:../../SaveSystemPacakgeUnity"
+        "com.judze.savesystem.runtime": "file:../../SaveSystemPackageUnity"
       }
     }
 
@@ -166,6 +169,7 @@ Adjust the path according to your local folder structure.
 
 ### 1. Define Save Data
 
+```csharp
     using System;
 
     [Serializable]
@@ -175,11 +179,11 @@ Adjust the path according to your local folder structure.
         public string playerName = "Player";
         public int score = 0;
     }
-
+```
 ---
 
 ### 2. Create Validator
-
+```csharp
     using SaveSystem.Validation;
 
     public class MyGameDataValidator : ISaveDataValidator<MyGameData>
@@ -192,11 +196,11 @@ Adjust the path according to your local folder structure.
             return data;
         }
     }
-
+```
 ---
 
 ### 3. Create SaveManager
-
+```csharp
     using SaveSystem.Core;
 
     var saveManager = SaveManagerFactory.Create(
@@ -209,25 +213,29 @@ Adjust the path according to your local folder structure.
         masterSecret: "my-secret-key",
         fileName: "gamesave.json"
     );
-
+```
 ---
 
 ### 4. Save Data
-
+```csharp
     saveManager.Save(data);
-
+```
 ---
 
 ### 5. Load Data
 
+If the save file is corrupted, the system will automatically attempt recovery using the backup save.
+```csharp
     var data = saveManager.Load();
+```
 
 ---
+
 
 ## Save Version Migration
 
 If the save structure changes between versions, create a migration.
-
+```csharp
     using SaveSystem.Versioning;
 
     public class Migration_V1_V2 : ISaveMigration<MyGameData>
@@ -241,14 +249,15 @@ If the save structure changes between versions, create a migration.
             return oldData;
         }
     }
+```
 
 Register migrations when creating the manager:
-
+```csharp
     registerMigrations: m =>
     {
         m.RegisterMigration(new Migration_V1_V2());
     },
-
+```
 ---
 
 ## Save File Format
@@ -277,6 +286,24 @@ If verification fails, the system can reject the save file and fall back to defa
 
 ---
 
+## Samples
+
+
+The package includes a sample scene demonstrating how to use the save system.
+
+Import it via:
+
+Package Manager → Modular Save System → Samples → Import
+
+The sample demonstrates:
+• saving data
+• loading data
+• deleting saves
+• checking save existence
+• version migration
+
+---
+
 ## Running Tests
 
 Open Unity Test Runner:
@@ -301,6 +328,49 @@ Root namespace:
 
     SaveSystem
 
+---
+
+## Architecture
+
+### Save Pipeline
+
+```text
+Game Data (TData)
+        ↓
+Serialization → (JsonSaveSerializer)
+        ↓
+Encryption → (AES-CBC)
+        ↓
+Integrity Protection → (HMAC-SHA256)
+        ↓
+SaveEnvelope
+{ iv + cipherText + mac }
+        ↓
+Storage Layer → (FileStorageService)
+        ↓
+Disk
+(Application.persistentDataPath)
+```
+
+### Load Pipeline
+
+```text
+Disk
+   ↓
+Storage → FileStorageService
+   ↓
+Integrity Check → HMAC-SHA256
+   ↓
+Decrypt → AES-CBC
+   ↓
+Deserialize → JsonSaveSerializer
+   ↓
+Migration → MigrationManager
+   ↓
+Validation → ISaveDataValidator
+   ↓
+Game Data (TData)
+```
 ---
 
 ## License
