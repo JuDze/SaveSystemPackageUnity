@@ -337,14 +337,18 @@ Root namespace:
 ```text
 Game Data (TData)
         ↓
-Serialization → (JsonSaveSerializer)
+Serialize Game Data → (JsonSaveSerializer)
         ↓
-Encryption → (AES-CBC)
+UTF-8 Encode
         ↓
-Integrity Protection → (HMAC-SHA256)
+Encrypt → (AES-CBC)
         ↓
-SaveEnvelope
-{ iv + cipherText + mac }
+Integrity Protection → (HMAC-SHA256 over IV + ciphertext)
+        ↓
+Build SaveEnvelope
+{ formatVersion + algorithm + iv + cipherText + mac }
+        ↓
+Serialize Envelope → (JsonSaveEnvelopeSerializer)
         ↓
 Storage Layer → (FileStorageService)
         ↓
