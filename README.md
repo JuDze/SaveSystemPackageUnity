@@ -357,17 +357,21 @@ Disk
 ```text
 Disk
    ↓
-Storage → FileStorageService
+Storage → (FileStorageService)
    ↓
-Integrity Check → HMAC-SHA256
+Deserialize Envelope → (JsonSaveEnvelopeSerializer)
    ↓
-Decrypt → AES-CBC
+Envelope Validation
    ↓
-Deserialize → JsonSaveSerializer
+Integrity Check → (HMAC-SHA256 over IV + ciphertext)
    ↓
-Migration → MigrationManager
+Decrypt → (AES-CBC)
    ↓
-Validation → ISaveDataValidator
+Deserialize → (JsonSaveSerializer)
+   ↓
+Migration → (VersionManager / MigrationManager)
+   ↓
+Validation → (ISaveDataValidator)
    ↓
 Game Data (TData)
 ```
