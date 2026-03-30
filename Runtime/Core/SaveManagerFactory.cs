@@ -7,25 +7,12 @@ using System;
 
 namespace SaveSystem.Core
 {
-    /// <summary>
-    /// Factory for creating a SaveManager instance in game projects.
-    /// Hides the complexity of wiring up all dependencies.
-    ///
-    /// Usage:
-    ///   var manager = SaveManagerFactory.Create(
-    ///       new MyGameSaveData(),
-    ///       new MyGameValidator(),
-    ///       migrations => migrations.RegisterMigration(new MyMigration_V1_V2()),
-    ///       data => data.version,
-    ///       (data, v) => data.version = v,
-    ///       currentVersion: 2
-    ///   );
-    /// </summary>
+
+    //Factory for creating a SaveManager instance in game projects.
     public static class SaveManagerFactory
     {
-        /// <summary>
-        /// Creates a SaveManager with AES + HMAC encryption (recommended for release builds).
-        /// </summary>
+        
+        // Creates a SaveManager with AES + HMAC encryption (recommended for release builds).
         public static SaveManager<TData> Create<TData>(
             Func<TData> createDefaultData,
             ISaveDataValidator<TData> validator,
@@ -64,13 +51,9 @@ namespace SaveSystem.Core
                 validator);
         }
 
-        /// <summary>
-        /// Fore development purposes:
-        /// Creates a SaveManager without encryption.
-        /// Data is saved in readable JSON. 
-        /// </summary>
-        /// 
-        
+
+        // For testing creates a SaveManager without encryption
+
         public static SaveManager<TData> CreateUnencrypted<TData>(
             TData defaultData,
             ISaveDataValidator<TData> validator,
