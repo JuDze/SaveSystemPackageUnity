@@ -195,7 +195,7 @@ namespace SaveSystem.Core
         // Returns true if a save file exists
         public bool HasSave()
         {
-            return storage.Exists();
+            return storage.Exists() || storage.BackupExists();
         }
 
         // Returns the full path to the save file
