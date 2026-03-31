@@ -119,59 +119,67 @@ namespace SaveSystem.Core
         {
             try
             {
-                // If no save file exists, return default data
-                if (!storage.Exists())
+                // Try loading the main save file first
+                if (storage.Exists())
                 {
-                    Debug.LogWarning($"{LOG_PREFIX}Save file not found. Using default data.");
-                    return createDefaultDataFunc();
+                    try
+                    {
+                        string mainSaveText = storage.LoadText();
+                        TData mainData = TryLoadFromText(mainSaveText, "main");
+        
+                        if (mainData != null)
+                            return mainData;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"{LOG_PREFIX}Main save load failed: {ex.GetType().Name}: {ex.Message}");
+                    }
                 }
-
-                try
+                else
                 {
-                    // Attempt to load the main save file
-                    string mainSaveText = storage.LoadText();
-                    TData mainData = TryLoadFromText(mainSaveText, "main");
-
-                    // If main save is valid, return it
-                    if (mainData != null)
-                        return mainData;
+                    Debug.LogWarning($"{LOG_PREFIX}Main save file not found.");
                 }
-                catch (Exception ex)
-                {
-                    // Log failure but continue with backup recovery
-                    Debug.LogError($"{LOG_PREFIX}Main save load failed: {ex.GetType().Name}: {ex.Message}");
-                }
-
-                // If main save failed, try loading backup
+        
+                // If main save is missing or invalid, try loading backup
                 if (storage.BackupExists())
                 {
                     try
                     {
-                        // Attempt to load backup save file
                         string backupSaveText = storage.LoadBackupText();
                         TData backupData = TryLoadFromText(backupSaveText, "backup");
-
-                        // If backup is valid, use it
+        
                         if (backupData != null)
                         {
-                            Debug.LogWarning($"{LOG_PREFIX}Main save is invalid. Backup save loaded successfully.");
+                            Debug.LogWarning($"{LOG_PREFIX}Backup save loaded successfully. Restoring main save file.");
+        
+                            try
+                            {
+                                Save(backupData);
+                                Debug.Log($"{LOG_PREFIX}Main save file restored from backup.");
+                            }
+                            catch (Exception restoreEx)
+                            {
+                                Debug.LogError($"{LOG_PREFIX}Failed to restore main save from backup: {restoreEx.GetType().Name}: {restoreEx.Message}");
+                            }
+        
                             return backupData;
                         }
                     }
                     catch (Exception ex)
                     {
-                        // Log backup failure and continue to default data
                         Debug.LogError($"{LOG_PREFIX}Backup save load failed: {ex.GetType().Name}: {ex.Message}");
                     }
                 }
-
-                // If both main and backup failed, return default data
+                else
+                {
+                    Debug.LogWarning($"{LOG_PREFIX}Backup save file not found.");
+                }
+        
                 Debug.LogWarning($"{LOG_PREFIX}No valid save could be loaded. Using default data.");
                 return createDefaultDataFunc();
             }
             catch (Exception ex)
             {
-                // Catch unexpected errors to prevent game crash
                 Debug.LogError($"{LOG_PREFIX}Unexpected error while loading data: {ex.GetType().Name}: {ex.Message}");
                 return createDefaultDataFunc();
             }
